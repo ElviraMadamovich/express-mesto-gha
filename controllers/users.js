@@ -1,7 +1,7 @@
 const UserSample = require('../models/user');
 
 const {
-  Ok, NotFoundError, BadRequestError,
+  Success, NotFound, BadRequest,
 } = require('../utils/constants');
 
 const getUsers = (req, res, next) => {
@@ -27,13 +27,13 @@ const createUser = (req, res, next) => {
 
   UserSample.create({ name, about, avatar })
     .then((user) => {
-      res.status(Ok).send({
+      res.status(Success).send({
         name: user.name, about: user.about, avatar: user.avatar,
       });
     })
     .catch((err) => {
       if (err.name === 'IncorrectDataError') {
-        res.status(BadRequestError).send({
+        res.status(BadRequest).send({
           message: 'Данные некорректны',
         });
       }
@@ -49,11 +49,11 @@ const changeUser = (req, res, next) => {
     .then((user) => {
       if (user) return res.send({ user });
 
-      throw NotFoundError('Пользователь не найден');
+      throw NotFound('Пользователь не найден');
     })
     .catch((err) => {
       if (err.name === 'IncorrectDataError') {
-        next(BadRequestError('Данные некорретны'));
+        next(BadRequest('Данные некорретны'));
       } else {
         next(err);
       }
@@ -68,11 +68,11 @@ const changeAvatar = (req, res, next) => {
     .then((user) => {
       if (user) return res.send({ user });
 
-      throw NotFoundError('Пользователь не найден');
+      throw NotFound('Пользователь не найден');
     })
     .catch((err) => {
       if (err.name === 'IncorrectDataError') {
-        next(BadRequestError('Данные некорректны'));
+        next(BadRequest('Данные некорректны'));
       } else {
         next(err);
       }

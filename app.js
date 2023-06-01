@@ -1,7 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
-const { NotFoundError } = require('./utils/constants');
+const { NotFound } = require('./utils/constants');
 const userRoutes = require('./routes/users');
 const cardRoutes = require('./routes/cards');
 
@@ -26,7 +26,7 @@ app.use(userRoutes);
 app.use(cardRoutes);
 
 app.use((req, res) => {
-  res.status(NotFoundError)
+  res.status(NotFound)
     .send({ message: 'Страница не найдена' });
 });
 

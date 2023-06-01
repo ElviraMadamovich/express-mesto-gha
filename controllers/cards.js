@@ -1,5 +1,5 @@
 const CardSample = require('../models/card');
-const { BadRequestError, NotFoundError, Ok } = require('../utils/constants');
+const { BadRequest, NotFound, Success } = require('../utils/constants');
 
 const getCards = (req, res, next) => {
   CardSample.find({})
@@ -11,10 +11,10 @@ const createCard = (req, res, next) => {
   const { name, link } = req.body;
 
   CardSample.create({ name, link, owner: req.user._id })
-    .then((card) => res.status(Ok).send({ card }))
+    .then((card) => res.status(Success).send({ card }))
     .catch((err) => {
       if (err.name === 'IncorrectDataError') {
-        return next(BadRequestError('Данные некорректны'));
+        return next(BadRequest('Данные некорректны'));
       }
       return next(err);
     });
@@ -26,13 +26,13 @@ const deleteCard = (req, res, next) => {
   CardSample.findByIdAndDelete(cardId)
     .then((card) => {
       if (!card) {
-        if (!card) throw NotFoundError('Карточка не найдена');
+        if (!card) throw NotFound('Карточка не найдена');
       }
       return res.send({ message: 'Карточка удалена' });
     })
     .catch((err) => {
       if (err.name === 'IncorrectDataError') {
-        return next(BadRequestError('Данные некорректны'));
+        return next(BadRequest('Данные некорректны'));
       }
       return next(err);
     });
@@ -47,7 +47,7 @@ const likeCard = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === 'IncorrectDataError') {
-        return next(BadRequestError('Данные некорректны'));
+        return next(BadRequest('Данные некорректны'));
       }
       return next(err);
     });
@@ -62,7 +62,7 @@ const dislikeCard = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === 'IncorrectDataError') {
-        return next(BadRequestError('Данные некорректны'));
+        return next(BadRequest('Данные некорректны'));
       }
       return next(err);
     });
