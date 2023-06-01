@@ -30,6 +30,4 @@ app.use((req, res) => {
     .send({ message: 'Страница не найдена' });
 });
 
-app.listen(PORT, () => {
-  console.log(`App запущен на ${PORT}`);
-});
+app.listen(PORT);
