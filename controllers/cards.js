@@ -1,10 +1,19 @@
 const CardSample = require('../models/card');
-const { BadRequest, NotFound, Success } = require('../utils/constants');
+const {
+  BadRequest,
+  NotFound,
+  Success,
+  ServerError,
+} = require('../utils/constants');
 
-const getCards = (req, res, next) => {
+const getCards = (req, res) => {
   CardSample.find({})
-    .then((cards) => res.send({ cards }))
-    .catch((err) => next(err));
+    .then((cards) => {
+      res.send(cards);
+    })
+    .catch(() => {
+      res.status(ServerError).send({ message: 'Ошибка сервера' });
+    });
 };
 
 const createCard = (req, res, next) => {
@@ -20,21 +29,27 @@ const createCard = (req, res, next) => {
     });
 };
 
-const deleteCard = (req, res, next) => {
+const deleteCard = (req, res) => {
   const { cardId } = req.params;
 
   CardSample.findByIdAndDelete(cardId)
+    .orFail()
     .then((card) => {
-      if (!card) {
-        if (!card) throw NotFound('Карточка не найдена');
-      }
-      return res.send({ message: 'Карточка удалена' });
+      res.send(card);
     })
     .catch((err) => {
-      if (err.name === 'IncorrectDataError') {
-        return next(BadRequest('Данные некорректны'));
+      if (err.name === 'NotFoundError') {
+        return res.status(NotFound).send({
+          message: 'Карточка не найдена',
+        });
       }
-      return next(err);
+      if (err.name === 'CastError') {
+        return res.status(BadRequest).send({
+          message: 'Данные некорректны',
+        });
+      } return res.status(ServerError).send({
+        message: 'Ошибка сервера',
+      });
     });
 };
 
