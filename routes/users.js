@@ -9,9 +9,9 @@ const {
 } = require('../controllers/users');
 
 router.get('/users', getUsers);
-router.get('/users/:userId', getUserById);
 router.post('/users', createUser);
-router.patch('/users/me/avatar', changeAvatar);
+router.get('/users/:userId', getUserById);
 router.patch('/users/me', changeUser);
+router.patch('/users/me/avatar', changeAvatar);
 
 module.exports = router;
