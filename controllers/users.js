@@ -1,90 +1,123 @@
-const UserSample = require('../models/user');
-
+const userSample = require('../models/user');
 const {
-  Success, NotFound, BadRequest,
+  BadRequestError,
+  NotFoundError,
+  ServerError,
+  OK,
 } = require('../utils/constants');
 
-const getUsers = (req, res, next) => {
-  UserSample.find({})
-    .then((users) => res.send({ users }))
-    .catch(next);
-};
-
-const getUser = (req, res, next) => {
-  const { userId } = req.params;
-
-  UserSample.findById(userId)
-    .then((user) => {
-      if (!user) {
-        res.send(user);
-      }
-    })
-    .catch(next);
-};
-
-const createUser = (req, res, next) => {
-  const { name, about, avatar } = req.body;
-
-  UserSample.create({ name, about, avatar })
-    .then((user) => {
-      res.status(Success).send({
-        name: user.name, about: user.about, avatar: user.avatar,
-      });
+const getUsers = (req, res) => {
+  userSample
+    .find({})
+    .then((users) => {
+      res.status(OK).send(users);
     })
     .catch((err) => {
-      if (err.name === 'IncorrectDataError') {
-        res.status(BadRequest).send({
+      res.status(ServerError).send({
+        message: err.message,
+      });
+    });
+};
+
+const createUser = (req, res) => {
+  const { name, about, avatar } = req.body;
+  userSample
+    .create({ name, about, avatar })
+    .then((user) => {
+      res.status(OK).send(user);
+    })
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        return res.status(BadRequestError).send({
           message: 'Данные некорректны',
         });
       }
-      return next(err);
-    })
-    .catch(next);
+      return res.status(ServerError).send({
+        message: 'Ошибка сервера',
+      });
+    });
 };
 
-const changeUser = (req, res, next) => {
+const getUserById = (req, res) => {
+  userSample
+    .findById(req.params.userId)
+    .orFail()
+    .then((user) => {
+      res.status(OK).send(user);
+    })
+    .catch((err) => {
+      if (err.name === 'DocumentNotFoundError') {
+        return res.status(NotFoundError).send({
+          message: 'Пользователь не найден',
+        });
+      }
+      if (err.name === 'CastError') {
+        return res.status(BadRequestError).send({
+          message: 'Данные некорректны',
+        });
+      }
+      return res.status(ServerError).send({
+        message: 'Ошибка сервера',
+      });
+    });
+};
+
+const changeUser = (req, res) => {
   const { name, about } = req.body;
-
-  UserSample.findByIdAndUpdate(req.user._id, { name, about }, { new: true })
+  userSample
+    .findByIdAndUpdate(
+      req.user._id,
+      { name, about },
+      {
+        new: true,
+        runValidators: true,
+      },
+    )
     .then((user) => {
-      if (user) return res.send({ user });
-
-      throw NotFound('Пользователь не найден');
+      res.status(OK).send(user);
     })
     .catch((err) => {
-      if (err.name === 'IncorrectDataError') {
-        next(BadRequest('Данные некорретны'));
-      } else {
-        next(err);
+      if (err.name === 'ValidationError') {
+        return res.status(BadRequestError).send({
+          message: 'Данные некорректны',
+        });
       }
-      return next(err);
+      return res.status(ServerError).send({
+        message: 'Ошибка сервера',
+      });
     });
 };
 
-const changeAvatar = (req, res, next) => {
+const changeAvatar = (req, res) => {
   const { avatar } = req.body;
-
-  UserSample.findByIdAndUpdate(req.user._id, { avatar }, { new: true })
+  userSample
+    .findByIdAndUpdate(
+      req.user._id,
+      { avatar },
+      {
+        new: true,
+        runValidators: true,
+      },
+    )
     .then((user) => {
-      if (user) return res.send({ user });
-
-      throw NotFound('Пользователь не найден');
+      res.status(OK).send(user);
     })
     .catch((err) => {
-      if (err.name === 'IncorrectDataError') {
-        next(BadRequest('Данные некорректны'));
-      } else {
-        next(err);
+      if (err.name === 'ValidationError') {
+        return res.status(BadRequestError).send({
+          message: 'Данные некорректны',
+        });
       }
+      return res.status(ServerError).send({
+        message: 'Ошибка сервера',
+      });
     });
-};
-
-const getCurrentUser = (req, res, next) => {
-  UserSample.findById(req.user._id)
-    .then((user) => res.send(user))
-    .catch(next);
 };
 
 module.exports = {
-  getUsers, getUser, createUser, changeUser, changeAvatar, getCurrentUser,
+  getUsers,
+  createUser,
+  getUserById,
+  changeUser,
+  changeAvatar,
 };
