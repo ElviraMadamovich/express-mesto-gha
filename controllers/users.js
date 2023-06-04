@@ -65,12 +65,11 @@ const getUserById = (req, res) => {
     });
 };
 
-const changeUserInfo = (req, res, userInfo, userAvatar) => {
+const changeUserInfo = (req, res, userInfo) => {
   userSample
     .findByIdAndUpdate(
       req.user._id,
       userInfo,
-      userAvatar,
       {
         new: true,
         runValidators: true,
@@ -95,8 +94,8 @@ const changeUser = (req, res) => {
 };
 
 const changeAvatar = (req, res) => {
-  const userAvatar = req.body;
-  changeUserInfo(req, res, userAvatar);
+  const userInfo = req.body;
+  changeUserInfo(req, res, userInfo);
 };
 
 module.exports = {
