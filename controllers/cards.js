@@ -1,9 +1,11 @@
+const mongoose = require('mongoose');
+
 const cardSample = require('../models/card');
 const {
-  BadRequestError,
-  NotFoundError,
-  ServerError,
-  OK,
+  HTTP_STATUS_BAD_REQUEST,
+  HTTP_STATUS_NOT_FOUND,
+  HTTP_STATUS_INTERNAL_SERVER_ERROR,
+  HTTP_STATUS_CREATED,
 } = require('../utils/constants');
 
 const createCard = (req, res) => {
@@ -12,15 +14,15 @@ const createCard = (req, res) => {
   cardSample
     .create({ name, link, owner: req.user._id })
     .then((card) => {
-      res.status(OK).send(card);
+      res.status(HTTP_STATUS_CREATED).send(card);
     })
     .catch((err) => {
-      if (err.name === 'ValidationError') {
-        return res.status(BadRequestError).send({
+      if (err instanceof mongoose.Error.ValidationError) {
+        return res.status(HTTP_STATUS_BAD_REQUEST).send({
           message: 'Данные некорректны',
         });
       }
-      return res.status(ServerError).send({
+      return res.status(HTTP_STATUS_INTERNAL_SERVER_ERROR).send({
         message: 'Ошибка сервера',
       });
     });
@@ -30,12 +32,13 @@ const getCards = (req, res) => {
   cardSample
     .find({})
     .then((cards) => {
-      res.status(OK).send(cards);
+      res.send(cards);
     })
     .catch((err) => {
-      res.status(ServerError).send({
-        message: err.message,
+      res.status(HTTP_STATUS_INTERNAL_SERVER_ERROR).send({
+        message: 'Ошибка сервера',
       });
+      console.log(err);
     });
 };
 
@@ -44,20 +47,20 @@ const deleteCard = (req, res) => {
     .findByIdAndRemove(req.params.cardId)
     .orFail()
     .then((card) => {
-      res.status(OK).send(card);
+      res.send(card);
     })
     .catch((err) => {
-      if (err.name === 'DocumentNotFoundError') {
-        return res.status(NotFoundError).send({
+      if (err instanceof mongoose.Error.NotFoundError) {
+        return res.status(HTTP_STATUS_NOT_FOUND).send({
           message: 'Карточка не найдена',
         });
       }
-      if (err.name === 'CastError') {
-        return res.status(BadRequestError).send({
+      if (err instanceof mongoose.Error.CastError) {
+        return res.status(HTTP_STATUS_BAD_REQUEST).send({
           message: 'Данные некорректны',
         });
       }
-      return res.status(ServerError).send({
+      return res.status(HTTP_STATUS_INTERNAL_SERVER_ERROR).send({
         message: 'Ошибка сервера',
       });
     });
@@ -72,20 +75,20 @@ const likeCard = (req, res) => {
     )
     .orFail()
     .then((card) => {
-      res.status(OK).send(card);
+      res.send(card);
     })
     .catch((err) => {
-      if (err.name === 'DocumentNotFoundError') {
-        return res.status(NotFoundError).send({
+      if (err instanceof mongoose.Error.NotFoundError) {
+        return res.status(HTTP_STATUS_NOT_FOUND).send({
           message: 'Карточка не найдена',
         });
       }
-      if (err.name === 'CastError') {
-        return res.status(BadRequestError).send({
+      if (err instanceof mongoose.Error.CastError) {
+        return res.status(HTTP_STATUS_BAD_REQUEST).send({
           message: 'Данные некорректны',
         });
       }
-      return res.status(ServerError).send({
+      return res.status(HTTP_STATUS_INTERNAL_SERVER_ERROR).send({
         message: 'Ошибка сервера',
       });
     });
@@ -100,20 +103,20 @@ const dislikeCard = (req, res) => {
     )
     .orFail()
     .then((card) => {
-      res.status(OK).send(card);
+      res.send(card);
     })
     .catch((err) => {
-      if (err.name === 'DocumentNotFoundError') {
-        return res.status(NotFoundError).send({
+      if (err instanceof mongoose.Error.NotFoundError) {
+        return res.status(HTTP_STATUS_NOT_FOUND).send({
           message: 'Карточка не найдена',
         });
       }
-      if (err.name === 'CastError') {
-        return res.status(BadRequestError).send({
+      if (err instanceof mongoose.Error.CastError) {
+        return res.status(HTTP_STATUS_BAD_REQUEST).send({
           message: 'Данные некорректны',
         });
       }
-      return res.status(ServerError).send({
+      return res.status(HTTP_STATUS_INTERNAL_SERVER_ERROR).send({
         message: 'Ошибка сервера',
       });
     });

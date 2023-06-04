@@ -8,10 +8,10 @@ const {
   changeAvatar,
 } = require('../controllers/users');
 
-router.get('/users', getUsers);
-router.post('/users', createUser);
-router.get('/users/:userId', getUserById);
-router.patch('/users/me', changeUser);
-router.patch('/users/me/avatar', changeAvatar);
+router.get('/', getUsers);
+router.post('/', createUser);
+router.get('/:userId', getUserById);
+router.patch('/me', changeUser);
+router.patch('/me/avatar', changeAvatar);
 
 module.exports = router;

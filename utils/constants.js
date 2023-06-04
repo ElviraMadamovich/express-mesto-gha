@@ -1,11 +1,11 @@
-const BadRequestError = 400;
-const NotFoundError = 404;
-const ServerError = 500;
-const OK = 200;
+const HTTP_STATUS_BAD_REQUEST = 400;
+const HTTP_STATUS_NOT_FOUND = 404;
+const HTTP_STATUS_INTERNAL_SERVER_ERROR = 500;
+const HTTP_STATUS_CREATED = 201;
 
 module.exports = {
-  BadRequestError,
-  NotFoundError,
-  ServerError,
-  OK,
+  HTTP_STATUS_BAD_REQUEST,
+  HTTP_STATUS_NOT_FOUND,
+  HTTP_STATUS_INTERNAL_SERVER_ERROR,
+  HTTP_STATUS_CREATED,
 };
