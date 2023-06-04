@@ -50,7 +50,7 @@ const deleteCard = (req, res) => {
       res.send(card);
     })
     .catch((err) => {
-      if (err instanceof mongoose.Error.NotFoundError) {
+      if (err instanceof mongoose.Error.DocumentNotFoundError) {
         return res.status(HTTP_STATUS_NOT_FOUND).send({
           message: 'Карточка не найдена',
         });
@@ -78,7 +78,7 @@ const likeCard = (req, res) => {
       res.send(card);
     })
     .catch((err) => {
-      if (err instanceof mongoose.Error.NotFoundError) {
+      if (err instanceof mongoose.Error.DocumentNotFoundError) {
         return res.status(HTTP_STATUS_NOT_FOUND).send({
           message: 'Карточка не найдена',
         });
@@ -106,7 +106,7 @@ const dislikeCard = (req, res) => {
       res.send(card);
     })
     .catch((err) => {
-      if (err instanceof mongoose.Error.NotFoundError) {
+      if (err instanceof mongoose.Error.DocumentNotFoundError) {
         return res.status(HTTP_STATUS_NOT_FOUND).send({
           message: 'Карточка не найдена',
         });

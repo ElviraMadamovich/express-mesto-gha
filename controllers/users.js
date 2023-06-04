@@ -49,7 +49,7 @@ const getUserById = (req, res) => {
       res.send(user);
     })
     .catch((err) => {
-      if (err instanceof mongoose.Error.NotFoundError) {
+      if (err instanceof mongoose.Error.DocumentNotFoundError) {
         return res.status(HTTP_STATUS_NOT_FOUND).send({
           message: 'Пользователь не найден',
         });
