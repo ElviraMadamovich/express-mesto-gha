@@ -8,6 +8,25 @@ const BadRequestError = require('../utils/BadRequestError');
 const NotFoundError = require('../utils/NotFoundError');
 const ConflictError = require('../utils/ConflictError');
 
+const login = (req, res, next) => {
+  const { email, password } = req.body;
+
+  return userSample
+    .findUserByCredentials(email, password)
+    .then((user) => {
+      const token = jwt.sign({ _id: user._id }, 'super-strong-secret', {
+        expiresIn: '7d',
+      });
+      res.send({ token });
+    })
+    .catch((err) => {
+      if (err.name === 'Error') {
+        return next(new UnauthorizedError('Неправильная почта или пароль'));
+      }
+      return next(err);
+    });
+};
+
 const getUsers = (req, res, next) => {
   userSample
     .find({})
@@ -25,8 +44,8 @@ const getCurrentUser = (req, res, next) => {
       res.send(user);
     })
     .catch((err) => {
-      if (err.name === 'DocumentNotFoundError') {
-        return next(new NotFoundError('Пользователь с указанным _id не найден'));
+      if (err instanceof mongoose.Error.DocumentNotFoundError) {
+        return next(new NotFoundError('Пользователь не найден'));
       }
       return next(err);
     });
@@ -40,11 +59,11 @@ const getUserById = (req, res, next) => {
       res.send(user);
     })
     .catch((err) => {
-      if (err.name === 'DocumentNotFoundError') {
-        return next(new NotFoundError('Пользователь с указанным _id не найден'));
+      if (err instanceof mongoose.Error.DocumentNotFoundError) {
+        return next(new NotFoundError('Пользователь не найден'));
       }
-      if (err.name === 'CastError') {
-        return next(new BadRequestError('Переданы некорректные данные'));
+      if (err instanceof mongoose.Error.CastError) {
+        return next(new BadRequestError('Данные некорректны'));
       }
       return next(err);
     });
@@ -82,10 +101,10 @@ const createUser = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === 'MongoServerError') {
-        return next(new ConflictError('Такой пользаватель уже существует'));
+        return next(new ConflictError('Такой пользаватель уже зарегистрирован'));
       }
-      if (err.name === 'ValidationError') {
-        return next(new BadRequestError('Переданы некорректные данные'));
+      if (err instanceof mongoose.Error.ValidationError) {
+        return next(new BadRequestError('Данные некорректны'));
       }
       return next(err);
     }));
@@ -104,7 +123,7 @@ const changeUserInfo = (req, res, { name, about, avatar }, next) => {
     .then((user) => res.send(user))
     .catch((err) => {
       if (err instanceof mongoose.Error.ValidationError) {
-        return next(new BadRequestError('Переданы некорректные данные'));
+        return next(new BadRequestError('Данные некорректны'));
       }
       return next(err);
     });
@@ -118,25 +137,6 @@ const changeUser = (req, res, next) => {
 const changeAvatar = (req, res, next) => {
   const { avatar } = req.body;
   changeUserInfo(req, res, { avatar }, next);
-};
-
-const login = (req, res, next) => {
-  const { email, password } = req.body;
-
-  return userSample
-    .findUserByCredentials(email, password)
-    .then((user) => {
-      const token = jwt.sign({ _id: user._id }, 'super-strong-secret', {
-        expiresIn: '7d',
-      });
-      res.send({ token });
-    })
-    .catch((err) => {
-      if (err instanceof mongoose.Error) {
-        return next(new UnauthorizedError('Неправильная почта или пароль'));
-      }
-      return next(err);
-    });
 };
 
 module.exports = {
