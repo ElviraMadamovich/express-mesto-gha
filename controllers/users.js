@@ -46,6 +46,9 @@ const getCurrentUser = (req, res, next) => {
       if (err instanceof mongoose.Error.DocumentNotFoundError) {
         return next(new NotFoundError('Пользователь не найден'));
       }
+      if (err instanceof mongoose.Error.BadRequestError) {
+        return next(new BadRequestError('Данные некорректны'));
+      }
       return next(err);
     });
 };
