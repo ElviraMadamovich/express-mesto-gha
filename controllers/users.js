@@ -14,18 +14,14 @@ const login = (req, res, next) => {
   return userSample
     .findUserByCredentials(email, password)
     .then((user) => {
-      const token = jwt.sign({ _id: user._id }, 'SecretKey', {
+      const token = jwt.sign({ _id: user._id }, 'super-strong-secret', {
         expiresIn: '7d',
       });
       res.send({ token });
     })
-    .catch((err) => {
-      if (err.name === 'Error') {
-        return next(new UnauthorizedError('Неправильная почта или пароль'));
-      }
-      return next(err);
-    });
+    .catch(() => next(new UnauthorizedError('Неправильная почта или пароль')));
 };
+
 const getUsers = (req, res, next) => {
   userSample
     .find({})
@@ -139,9 +135,9 @@ const changeAvatar = (req, res, next) => {
 };
 
 module.exports = {
+  getCurrentUser,
   login,
   getUsers,
-  getCurrentUser,
   getUserById,
   createUser,
   changeUser,
