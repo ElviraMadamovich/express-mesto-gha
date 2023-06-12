@@ -11,12 +11,12 @@ const {
   validateGetUserById,
   validateChangeUser,
   validateChangeAvatar,
-} = require('../middlewares/validation');
+} = require('../middlewares/dataValidation');
 
 router.get('/', getUsers);
-router.get('/me', getCurrentUser);
 router.get('/:userId', validateGetUserById, getUserById);
-router.patch('/me/avatar', validateChangeAvatar, changeAvatar);
 router.patch('/me', validateChangeUser, changeUser);
+router.patch('/me/avatar', validateChangeAvatar, changeAvatar);
+router.get('/me', getCurrentUser);
 
 module.exports = router;

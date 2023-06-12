@@ -19,7 +19,6 @@ const cardSchema = new Schema(
         message: 'Введите URL',
       },
     },
-
     owner: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'user',

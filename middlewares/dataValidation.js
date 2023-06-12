@@ -2,9 +2,10 @@ const { celebrate, Joi } = require('celebrate');
 
 const regex = /^https*:\/\/(www\.)*[-a-zA-Z0-9@:%._+~#=]{1,}\.[a-zA-Z0-9()]([-a-zA-Z0-9-._~:/?#[\]@!$&'()*+,;=]*)?$/i;
 
-const validateGetUserById = celebrate({
-  params: Joi.object().keys({
-    userId: Joi.string().required().hex().length(24),
+const validateLogin = celebrate({
+  body: Joi.object().keys({
+    email: Joi.string().required().email(),
+    password: Joi.string().required().min(8),
   }),
 });
 
@@ -18,6 +19,12 @@ const validateCreateUser = celebrate({
   }),
 });
 
+const validateGetUserById = celebrate({
+  params: Joi.object().keys({
+    userId: Joi.string().required().hex().length(24),
+  }),
+});
+
 const validateChangeUser = celebrate({
   body: Joi.object().keys({
     name: Joi.string().min(2).max(30),
@@ -28,13 +35,6 @@ const validateChangeUser = celebrate({
 const validateChangeAvatar = celebrate({
   body: Joi.object().keys({
     avatar: Joi.string().required().pattern(regex),
-  }),
-});
-
-const validateLogin = celebrate({
-  body: Joi.object().keys({
-    email: Joi.string().required().email(),
-    password: Joi.string().required().min(8),
   }),
 });
 
@@ -52,11 +52,11 @@ const validateCardId = celebrate({
 });
 
 module.exports = {
-  validateCardId,
-  validateChangeAvatar,
-  validateGetUserById,
-  validateCreateUser,
-  validateChangeUser,
   validateLogin,
+  validateCreateUser,
+  validateGetUserById,
+  validateChangeUser,
+  validateChangeAvatar,
+  validateCardId,
   validateCreateCard,
 };

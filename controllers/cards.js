@@ -1,8 +1,8 @@
 const mongoose = require('mongoose');
 const cardSample = require('../models/card');
-const ForbiddenError = require('../utils/ForbiddenError');
-const BadRequestError = require('../utils/BadRequestError');
-const NotFoundError = require('../utils/NotFoundError');
+const ForbiddenError = require('../utils/errors/ForbiddenError');
+const BadRequestError = require('../utils/errors/BadRequestError');
+const NotFoundError = require('../utils/errors/NotFoundError');
 
 const getCards = (req, res, next) => {
   cardSample
@@ -13,7 +13,24 @@ const getCards = (req, res, next) => {
     .catch(next);
 };
 
-const cardDelete = (req, res, next) => {
+const createCard = (req, res, next) => {
+  const owner = req.user._id;
+  const { name, link } = req.body;
+
+  cardSample
+    .create({ name, link, owner })
+    .then((card) => {
+      res.send(card);
+    })
+    .catch((err) => {
+      if (err instanceof mongoose.Error.ValidationError) {
+        return next(new BadRequestError('Данные некорректны'));
+      }
+      return next(err);
+    });
+};
+
+const deleteCard = (req, res, next) => {
   cardSample
     .findById(req.params.cardId)
     .orFail()
@@ -31,23 +48,6 @@ const cardDelete = (req, res, next) => {
     .catch((err) => {
       if (err instanceof mongoose.Error.DocumentNotFoundError) {
         return next(new NotFoundError('Карточка не найдена'));
-      }
-      return next(err);
-    });
-};
-
-const createCard = (req, res, next) => {
-  const owner = req.user._id;
-  const { name, link } = req.body;
-
-  cardSample
-    .create({ name, link, owner })
-    .then((card) => {
-      res.send(card);
-    })
-    .catch((err) => {
-      if (err instanceof mongoose.Error.ValidationError) {
-        return next(new BadRequestError('Данные некорректны'));
       }
       return next(err);
     });
@@ -100,7 +100,7 @@ const dislikeCard = (req, res, next) => {
 module.exports = {
   getCards,
   createCard,
-  cardDelete,
+  deleteCard,
   likeCard,
   dislikeCard,
 };

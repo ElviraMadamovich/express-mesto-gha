@@ -3,10 +3,10 @@ const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const userSample = require('../models/user');
-const BadRequestError = require('../utils/BadRequestError');
-const NotFoundError = require('../utils/NotFoundError');
-const ConflictError = require('../utils/ConflictError');
-const UnauthorizedError = require('../utils/UnauthorizedError');
+const BadRequestError = require('../utils/errors/BadRequestError');
+const NotFoundError = require('../utils/errors/NotFoundError');
+const ConflictError = require('../utils/errors/ConflictError');
+const UnauthorizedError = require('../utils/errors/UnauthorizedError');
 
 const login = (req, res, next) => {
   const { email, password } = req.body;
@@ -14,7 +14,7 @@ const login = (req, res, next) => {
   return userSample
     .findUserByCredentials(email, password)
     .then((user) => {
-      const token = jwt.sign({ _id: user._id }, 'super-strong-secret', {
+      const token = jwt.sign({ _id: user._id }, 'SecretKey', {
         expiresIn: '7d',
       });
       res.send({ token });
@@ -135,9 +135,9 @@ const changeAvatar = (req, res, next) => {
 };
 
 module.exports = {
-  getCurrentUser,
   login,
   getUsers,
+  getCurrentUser,
   getUserById,
   createUser,
   changeUser,

@@ -2,12 +2,14 @@ const express = require('express');
 const mongoose = require('mongoose');
 const { errors } = require('celebrate');
 const routes = require('./routes/index');
-const handleError = require('./utils/handleError');
-const { login, createUser } = require('./controllers/users');
+const handleError = require('./utils/errors/handleError');
 const auth = require('./middlewares/auth');
-const { validateCreateUser, validateLogin } = require('./middlewares/validation');
+const { validateCreateUser, validateLogin } = require('./middlewares/dataValidation');
+const { login, createUser } = require('./controllers/users');
 
 const app = express();
+
+const { PORT = 3000 } = process.env;
 
 mongoose.connect('mongodb://127.0.0.1:27017/mestodb');
 
@@ -32,6 +34,4 @@ app.use((err, req, res, next) => {
   next();
 });
 
-app.listen(3000, () => {
-  console.log('App listening on server 3000');
-});
+app.listen(PORT);
