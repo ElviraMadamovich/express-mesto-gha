@@ -39,7 +39,7 @@ const getCurrentUser = (req, res, next) => {
       res.send(user);
     })
     .catch((err) => {
-      if (err.name === 'DocumentNotFoundError') {
+      if (err instanceof mongoose.Error.DocumentNotFoundError) {
         return next(new NotFoundError('Пользователь не найден'));
       }
       return next(err);
@@ -57,7 +57,7 @@ const getUserById = (req, res, next) => {
       if (err instanceof mongoose.Error.DocumentNotFoundError) {
         return next(new NotFoundError('Пользователь не найден'));
       }
-      if (err instanceof mongoose.Error.CastError) {
+      if (err instanceof mongoose.Error.BadRequestError) {
         return next(new BadRequestError('Данные некорректны'));
       }
       return next(err);
