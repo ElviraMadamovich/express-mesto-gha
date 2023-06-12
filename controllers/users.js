@@ -6,6 +6,7 @@ const userSample = require('../models/user');
 const BadRequestError = require('../utils/BadRequestError');
 const NotFoundError = require('../utils/NotFoundError');
 const ConflictError = require('../utils/ConflictError');
+const UnauthorizedError = require('../utils/UnauthorizedError');
 
 const login = (req, res, next) => {
   const { email, password } = req.body;
@@ -18,7 +19,7 @@ const login = (req, res, next) => {
       });
       res.send({ token });
     })
-    .catch(next);
+    .catch(() => next(new UnauthorizedError('Неправильная почта или пароль')));
 };
 
 const getUsers = (req, res, next) => {
@@ -95,7 +96,7 @@ const createUser = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === 'MongoServerError') {
-        return next(new ConflictError('Такой пользаватель уже зарегистрирован'));
+        return next(new ConflictError('Пользователь уже зарегистрирован'));
       }
       if (err instanceof mongoose.Error.ValidationError) {
         return next(new BadRequestError('Данные некорректны'));
