@@ -3,10 +3,10 @@ const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const userSample = require('../models/user');
-const BadRequestError = require('../utils/errors/BadRequestError');
-const NotFoundError = require('../utils/errors/NotFoundError');
-const ConflictError = require('../utils/errors/ConflictError');
-const UnauthorizedError = require('../utils/errors/UnauthorizedError');
+const BadRequestError = require('../utils/BadRequestError');
+const NotFoundError = require('../utils/NotFoundError');
+const ConflictError = require('../utils/ConflictError');
+const UnauthorizedError = require('../utils/UnauthorizedError');
 
 const login = (req, res, next) => {
   const { email, password } = req.body;
