@@ -131,7 +131,12 @@ const login = (req, res, next) => {
       });
       res.send({ token });
     })
-    .catch(next);
+    .catch((err) => {
+      if (err.name === 'Error') {
+        return next(new UnauthorizedError('Неправильная почта или пароль'));
+      }
+      return next(err);
+    });
 };
 
 module.exports = {
