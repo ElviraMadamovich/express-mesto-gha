@@ -1,3 +1,4 @@
+/* eslint-disable no-shadow */
 const mongoose = require('mongoose');
 
 const jwt = require('jsonwebtoken');
@@ -14,7 +15,6 @@ const UnauthorizedError = require('../utils/errors/UnauthorizedError');
 const BadRequestError = require('../utils/errors/BadRequestError');
 const NotFoundError = require('../utils/errors/NotFoundError');
 const ConflictError = require('../utils/errors/ConflictError');
-const InternalServerError = require('../utils/errors/InternalServerError');
 
 const login = (req, res, next) => {
   const { email, password } = req.body;
@@ -60,30 +60,40 @@ const getCurrentUser = (req, res, next) => {
 };
 
 const createUser = (req, res, next) => {
-  bcrypt.hash(req.body.password, 10)
-    .then((hash) => userSample.create({
-      ...req.body, password: hash,
-    }))
+  const {
+    name,
+    about,
+    avatar,
+    email,
+    password,
+  } = req.body;
+
+  bcrypt.hash(password, 10).then((hash) => userSample
+    .create({
+      name, about, avatar, email, password: hash,
+    })
     .then(({
-      name, about, avatar, email, _id, createdAt,
+      name,
+      about,
+      avatar,
+      email,
     }) => {
-      res.status(HTTP_STATUS_CREATED).send(
-        {
-          data: {
-            name, about, avatar, email, _id, createdAt,
-          },
-        },
-      );
+      res.status(HTTP_STATUS_CREATED).send({
+        name,
+        about,
+        avatar,
+        email,
+      });
     })
     .catch((err) => {
       if (err.code === 11000) {
-        return next(new ConflictError('Пользователь уже зарегистрирован'));
+        return next(new ConflictError('Такой пользователь уже зарегистрирован'));
       }
       if (err instanceof mongoose.Error.ValidationError) {
         return next(new BadRequestError('Данные некорректны'));
       }
-      return next(new InternalServerError('Ошибка сервера'));
-    });
+      return next(err);
+    }));
 };
 
 const getUserById = (req, res, next) => {
