@@ -1,39 +1,11 @@
 /* eslint-disable no-shadow */
-const mongoose = require('mongoose');
-
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
-
 const userSample = require('../models/user');
-const {
-  HTTP_STATUS_CREATED,
-} = require('../utils/constants');
-
-const { SECRETKEY } = require('../middlewares/auth');
-
-const UnauthorizedError = require('../utils/errors/UnauthorizedError');
-const BadRequestError = require('../utils/errors/BadRequestError');
-const NotFoundError = require('../utils/errors/NotFoundError');
-const ConflictError = require('../utils/errors/ConflictError');
-
-const login = (req, res, next) => {
-  const { email, password } = req.body;
-
-  return userSample
-    .findUserByCredentials(email, password)
-    .then((user) => {
-      const token = jwt.sign({ _id: user._id }, SECRETKEY, {
-        expiresIn: '7d',
-      });
-      res.send({ token });
-    })
-    .catch((err) => {
-      if (err instanceof mongoose.Error) {
-        return next(new UnauthorizedError('Неправильная почта или пароль'));
-      }
-      return next(err);
-    });
-};
+const UnauthorizedError = require('../utils/UnauthorizedError');
+const BadRequestError = require('../utils/BadRequestError');
+const NotFoundError = require('../utils/NotFoundError');
+const ConflictError = require('../utils/ConflictError');
 
 const getUsers = (req, res, next) => {
   userSample
@@ -52,7 +24,7 @@ const getCurrentUser = (req, res, next) => {
       res.send(user);
     })
     .catch((err) => {
-      if (err instanceof mongoose.Error.DocumentNotFoundError) {
+      if (err.name === 'DocumentNotFoundError') {
         return next(new NotFoundError('Пользователь с указанным _id не найден'));
       }
       return next(err);
@@ -67,7 +39,7 @@ const getUserById = (req, res, next) => {
       res.send(user);
     })
     .catch((err) => {
-      if (err instanceof mongoose.Error.DocumentNotFoundError) {
+      if (err.name === 'DocumentNotFoundError') {
         return next(new NotFoundError('Пользователь с указанным _id не найден'));
       }
       if (err.name === 'CastError') {
@@ -100,7 +72,7 @@ const createUser = (req, res, next) => {
       avatar,
       email,
     }) => {
-      res.status(HTTP_STATUS_CREATED).send({
+      res.status(201).send({
         name,
         about,
         avatar,
@@ -111,48 +83,84 @@ const createUser = (req, res, next) => {
       if (err.name === 'MongoServerError') {
         return next(new ConflictError('Такой пользаватель уже существует'));
       }
-      if (err instanceof mongoose.Error.ValidationError) {
+      if (err.name === 'ValidationError') {
         return next(new BadRequestError('Переданы некорректные данные'));
       }
       return next(err);
     }));
 };
 
-const changeUserInfo = (req, res, { name, about, avatar }, next) => {
+const changeUser = (req, res, next) => {
+  const { name, about } = req.body;
+
   userSample
     .findByIdAndUpdate(
       req.user._id,
-      { name, about, avatar },
+      { name, about },
       {
         new: true,
         runValidators: true,
       },
     )
-    .then((user) => res.send(user))
+    .then((user) => {
+      res.send(user);
+    })
     .catch((err) => {
-      if (err instanceof mongoose.Error.ValidationError) {
-        return next(new BadRequestError('Данные некорректны'));
+      if (err.name === 'ValidationError') {
+        return next(new BadRequestError('Переданы некорректные данные'));
       }
       return next(err);
     });
 };
 
-const changeUser = (req, res, next) => {
-  const { name, about } = req.body;
-  changeUserInfo(req, res, { name, about }, next);
-};
-
 const changeAvatar = (req, res, next) => {
   const { avatar } = req.body;
-  changeUserInfo(req, res, { avatar }, next);
+
+  userSample
+    .findByIdAndUpdate(
+      req.user._id,
+      { avatar },
+      {
+        new: true,
+        runValidators: true,
+      },
+    )
+    .then((user) => {
+      res.send(user);
+    })
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        return next(new BadRequestError('Переданы некорректные данные'));
+      }
+      return next(err);
+    });
+};
+
+const login = (req, res, next) => {
+  const { email, password } = req.body;
+
+  return userSample
+    .findUserByCredentials(email, password)
+    .then((user) => {
+      const token = jwt.sign({ _id: user._id }, 'super-strong-secret', {
+        expiresIn: '7d',
+      });
+      res.send({ token });
+    })
+    .catch((err) => {
+      if (err.name === 'Error') {
+        return next(new UnauthorizedError(' Неправильная почта или пароль'));
+      }
+      return next(err);
+    });
 };
 
 module.exports = {
-  getUsers,
-  createUser,
-  getUserById,
-  changeUser,
-  changeAvatar,
   getCurrentUser,
   login,
+  getUsers,
+  getUserById,
+  createUser,
+  changeUser,
+  changeAvatar,
 };

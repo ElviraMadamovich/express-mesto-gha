@@ -1,30 +1,7 @@
-const mongoose = require('mongoose');
-
 const cardSample = require('../models/card');
-const {
-  HTTP_STATUS_CREATED,
-} = require('../utils/constants');
-
-const ForbiddenError = require('../utils/errors/ForbiddenError');
-const BadRequestError = require('../utils/errors/BadRequestError');
-const NotFoundError = require('../utils/errors/NotFoundError');
-const InternalServerError = require('../utils/errors/InternalServerError');
-
-const createCard = (req, res, next) => {
-  const { name, link } = req.body;
-
-  cardSample
-    .create({ name, link, owner: req.user._id })
-    .then((card) => {
-      res.status(HTTP_STATUS_CREATED).send(card);
-    })
-    .catch((err) => {
-      if (err instanceof mongoose.Error.ValidationError) {
-        return next(new BadRequestError('Данные некорректны'));
-      }
-      return next(err);
-    });
-};
+const ForbiddenError = require('../utils/ForbiddenError');
+const BadRequestError = require('../utils/BadRequestError');
+const NotFoundError = require('../utils/NotFoundError');
 
 const getCards = (req, res, next) => {
   cardSample
@@ -35,25 +12,43 @@ const getCards = (req, res, next) => {
     .catch(next);
 };
 
-const deleteCard = (req, res, next) => {
+const cardDelete = (req, res, next) => {
   cardSample
     .findById(req.params.cardId)
-    .orFail(new NotFoundError('Карточка не найдена'))
-    .then((cardDoc) => {
-      if (req.user._id !== cardDoc.owner.toString()) {
-        return next(new ForbiddenError('Нельзя удалять чужую карточку'));
-      }
-      return cardSample.findByIdAndRemove(req.params.cardId);
+    .orFail()
+    .then((card) => {
+      cardSample
+        .deleteOne({ _id: card._id, owner: req.user._id })
+        .then((result) => {
+          if (result.deletedCount === 0) {
+            next(new ForbiddenError('Невозможно удалить чужую карту'));
+          } else {
+            res.send({ message: 'Пост удалён' });
+          }
+        });
     })
-    .then((card) => res.send({ message: `Карточка _id:${card._id} удалена` }))
     .catch((err) => {
-      if (err instanceof NotFoundError) {
-        return next(err);
+      if (err.name === 'DocumentNotFoundError') {
+        return next(new NotFoundError('Карточка с таким id не найдена'));
       }
-      if (err instanceof mongoose.Error.CastError) {
-        return next(new BadRequestError('Данные некорректны'));
+      return next(err);
+    });
+};
+
+const createCard = (req, res, next) => {
+  const owner = req.user._id;
+  const { name, link } = req.body;
+
+  cardSample
+    .create({ name, link, owner })
+    .then((card) => {
+      res.send(card);
+    })
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        return next(new BadRequestError('Переданы некорректные данные'));
       }
-      return next(new InternalServerError('Ошибка сервера'));
+      return next(err);
     });
 };
 
@@ -69,11 +64,11 @@ const likeCard = (req, res, next) => {
       res.send(card);
     })
     .catch((err) => {
-      if (err instanceof mongoose.Error.DocumentNotFoundError) {
-        return next(new NotFoundError('Карточка не найдена'));
+      if (err.name === 'DocumentNotFoundError') {
+        return next(new NotFoundError('Карточка с таким id не найдена'));
       }
-      if (err instanceof mongoose.Error.CastError) {
-        return next(new BadRequestError('Данные некорректны'));
+      if (err.name === 'CastError') {
+        return next(new BadRequestError('Переданы некорректные данные'));
       }
       return next(err);
     });
@@ -91,20 +86,20 @@ const dislikeCard = (req, res, next) => {
       res.send(card);
     })
     .catch((err) => {
-      if (err instanceof mongoose.Error.DocumentNotFoundErrorError) {
-        return next(new NotFoundError('Карточка не найдена'));
+      if (err.name === 'DocumentNotFoundError') {
+        return next(new NotFoundError('Карточка с таким id не найдена'));
       }
-      if (err instanceof mongoose.Error.CastError) {
-        return next(new BadRequestError('Данные некорректны'));
+      if (err.name === 'CastError') {
+        return next(new BadRequestError('Переданы некорректные данные'));
       }
       return next(err);
     });
 };
 
 module.exports = {
-  createCard,
   getCards,
-  deleteCard,
+  createCard,
+  cardDelete,
   likeCard,
   dislikeCard,
 };
