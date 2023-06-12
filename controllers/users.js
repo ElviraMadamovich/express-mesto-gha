@@ -1,4 +1,5 @@
 /* eslint-disable no-shadow */
+const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const userSample = require('../models/user');
@@ -90,50 +91,33 @@ const createUser = (req, res, next) => {
     }));
 };
 
-const changeUser = (req, res, next) => {
-  const { name, about } = req.body;
-
+const changeUserInfo = (req, res, { name, about, avatar }, next) => {
   userSample
     .findByIdAndUpdate(
       req.user._id,
-      { name, about },
+      { name, about, avatar },
       {
         new: true,
         runValidators: true,
       },
     )
-    .then((user) => {
-      res.send(user);
-    })
+    .then((user) => res.send(user))
     .catch((err) => {
-      if (err.name === 'ValidationError') {
+      if (err instanceof mongoose.Error.ValidationError) {
         return next(new BadRequestError('Переданы некорректные данные'));
       }
       return next(err);
     });
 };
 
+const changeUser = (req, res, next) => {
+  const { name, about } = req.body;
+  changeUserInfo(req, res, { name, about }, next);
+};
+
 const changeAvatar = (req, res, next) => {
   const { avatar } = req.body;
-
-  userSample
-    .findByIdAndUpdate(
-      req.user._id,
-      { avatar },
-      {
-        new: true,
-        runValidators: true,
-      },
-    )
-    .then((user) => {
-      res.send(user);
-    })
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        return next(new BadRequestError('Переданы некорректные данные'));
-      }
-      return next(err);
-    });
+  changeUserInfo(req, res, { avatar }, next);
 };
 
 const login = (req, res, next) => {
@@ -147,12 +131,7 @@ const login = (req, res, next) => {
       });
       res.send({ token });
     })
-    .catch((err) => {
-      if (err.name === 'Error') {
-        return next(new UnauthorizedError(' Неправильная почта или пароль'));
-      }
-      return next(err);
-    });
+    .catch(next);
 };
 
 module.exports = {
