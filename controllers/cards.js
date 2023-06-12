@@ -8,6 +8,7 @@ const {
 const ForbiddenError = require('../utils/errors/ForbiddenError');
 const BadRequestError = require('../utils/errors/BadRequestError');
 const NotFoundError = require('../utils/errors/NotFoundError');
+const InternalServerError = require('../utils/errors/InternalServerError');
 
 const createCard = (req, res, next) => {
   const { name, link } = req.body;
@@ -36,24 +37,23 @@ const getCards = (req, res, next) => {
 
 const deleteCard = (req, res, next) => {
   cardSample
-    .findByIdAndRemove(req.params.cardId)
-    .orFail()
-    .then((card) => {
-      cardSample
-        .deleteOne({ _id: card._id, owner: req.user._id })
-        .then((result) => {
-          if (result.deletedCount === 0) {
-            next(new ForbiddenError('Нельзя удалять чужую карточку'));
-          } else {
-            res.send({ message: 'Карточка удалена' });
-          }
-        });
-    })
-    .catch((err) => {
-      if (err instanceof mongoose.Error.DocumentNotFoundError) {
-        return next(new NotFoundError('Карточка не найдена'));
+    .findById(req.params.cardId)
+    .orFail(new NotFoundError('Карточка не найдена'))
+    .then((cardDoc) => {
+      if (req.user._id !== cardDoc.owner.toString()) {
+        return next(new ForbiddenError('Нельзя удалять чужую карточку'));
       }
-      return next(err);
+      return cardSample.findByIdAndRemove(req.params.cardId);
+    })
+    .then((card) => res.send({ message: `Карточка _id:${card._id} удалена` }))
+    .catch((err) => {
+      if (err instanceof NotFoundError) {
+        return next(err);
+      }
+      if (err instanceof mongoose.Error.CastError) {
+        return next(new BadRequestError('Данные некорректны'));
+      }
+      return next(new InternalServerError('Ошибка сервера'));
     });
 };
 
