@@ -53,7 +53,25 @@ const getCurrentUser = (req, res, next) => {
     })
     .catch((err) => {
       if (err instanceof mongoose.Error.DocumentNotFoundError) {
-        return next(new NotFoundError('Пользователь не найден'));
+        return next(new NotFoundError('Пользователь с указанным _id не найден'));
+      }
+      return next(err);
+    });
+};
+
+const getUserById = (req, res, next) => {
+  userSample
+    .findById(req.params.userId)
+    .orFail()
+    .then((user) => {
+      res.send(user);
+    })
+    .catch((err) => {
+      if (err instanceof mongoose.Error.DocumentNotFoundError) {
+        return next(new NotFoundError('Пользователь с указанным _id не найден'));
+      }
+      if (err.name === 'CastError') {
+        return next(new BadRequestError('Переданы некорректные данные'));
       }
       return next(err);
     });
@@ -70,7 +88,11 @@ const createUser = (req, res, next) => {
 
   bcrypt.hash(password, 10).then((hash) => userSample
     .create({
-      name, about, avatar, email, password: hash,
+      name,
+      about,
+      avatar,
+      email,
+      password: hash,
     })
     .then(({
       name,
@@ -86,32 +108,14 @@ const createUser = (req, res, next) => {
       });
     })
     .catch((err) => {
-      if (err.code === 11000) {
-        return next(new ConflictError('Такой пользователь уже зарегистрирован'));
+      if (err.name === 'MongoServerError') {
+        return next(new ConflictError('Такой пользаватель уже существует'));
       }
       if (err instanceof mongoose.Error.ValidationError) {
-        return next(new BadRequestError('Данные некорректны'));
+        return next(new BadRequestError('Переданы некорректные данные'));
       }
       return next(err);
     }));
-};
-
-const getUserById = (req, res, next) => {
-  userSample
-    .findById(req.params.userId)
-    .orFail()
-    .then((user) => {
-      res.send(user);
-    })
-    .catch((err) => {
-      if (err instanceof mongoose.Error.DocumentNotFoundError) {
-        return next(new NotFoundError('Пользователь не найден'));
-      }
-      if (err instanceof mongoose.Error.CastError) {
-        return next(new BadRequestError('Данные некорректны'));
-      }
-      return next(err);
-    });
 };
 
 const changeUserInfo = (req, res, { name, about, avatar }, next) => {
