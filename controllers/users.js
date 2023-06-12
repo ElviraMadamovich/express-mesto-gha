@@ -3,7 +3,6 @@ const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const userSample = require('../models/user');
-const UnauthorizedError = require('../utils/UnauthorizedError');
 const BadRequestError = require('../utils/BadRequestError');
 const NotFoundError = require('../utils/NotFoundError');
 const ConflictError = require('../utils/ConflictError');
@@ -19,12 +18,7 @@ const login = (req, res, next) => {
       });
       res.send({ token });
     })
-    .catch((err) => {
-      if (err.name === 'Error') {
-        return next(new UnauthorizedError('Неправильная почта или пароль'));
-      }
-      return next(err);
-    });
+    .catch(next);
 };
 
 const getUsers = (req, res, next) => {
