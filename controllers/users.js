@@ -95,7 +95,7 @@ const createUser = (req, res, next) => {
       });
     })
     .catch((err) => {
-      if (err.name === 'MongoServerError') {
+      if (err.name === 'MongoServerError' || err.code === 11000) {
         return next(new ConflictError('Пользователь уже зарегистрирован'));
       }
       if (err instanceof mongoose.Error.ValidationError) {
