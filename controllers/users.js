@@ -19,9 +19,13 @@ const login = (req, res, next) => {
       });
       res.send({ token });
     })
-    .catch(() => next(new UnauthorizedError('Неправильная почта или пароль')));
+    .catch((err) => {
+      if (err.name === 'Error') {
+        return next(new UnauthorizedError('Неправильная почта или пароль'));
+      }
+      return next(err);
+    });
 };
-
 const getUsers = (req, res, next) => {
   userSample
     .find({})
@@ -57,7 +61,7 @@ const getUserById = (req, res, next) => {
       if (err instanceof mongoose.Error.DocumentNotFoundError) {
         return next(new NotFoundError('Пользователь не найден'));
       }
-      if (err instanceof mongoose.Error.BadRequestError) {
+      if (err instanceof mongoose.Error.CastError) {
         return next(new BadRequestError('Данные некорректны'));
       }
       return next(err);
