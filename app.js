@@ -2,7 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const { errors } = require('celebrate');
 const routes = require('./routes/index');
-const handleError = require('./utils/errors/handleError');
+const handleNotFoundError = require('./middlewares/handleNotFoundError');
 const auth = require('./middlewares/auth');
 const { validateCreateUser, validateLogin } = require('./middlewares/dataValidation');
 const { login, createUser } = require('./controllers/users');
@@ -21,7 +21,7 @@ app.post('/signup', validateCreateUser, createUser);
 
 app.use(auth, routes);
 
-app.use('/*', auth, handleError);
+app.use('/*', auth, handleNotFoundError);
 
 app.use(errors());
 
