@@ -132,7 +132,7 @@ const login = (req, res, next) => {
       res.send({ token });
     })
     .catch((err) => {
-      if (err.name === 'Error') {
+      if (err instanceof mongoose.Error) {
         return next(new UnauthorizedError('Неправильная почта или пароль'));
       }
       return next(err);
