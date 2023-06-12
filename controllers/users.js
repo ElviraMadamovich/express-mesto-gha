@@ -32,7 +32,12 @@ const getUsers = (req, res, next) => {
     .then((users) => {
       res.send(users);
     })
-    .catch(next);
+    .catch((err) => {
+      if (err instanceof mongoose.Error.BadRequestError) {
+        return next(new BadRequestError('Данные некорректны'));
+      }
+      return next(err);
+    });
 };
 
 const getCurrentUser = (req, res, next) => {
