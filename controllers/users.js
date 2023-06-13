@@ -33,7 +33,7 @@ const getUsers = (req, res, next) => {
       res.send(users);
     })
     .catch((err) => {
-      if (err instanceof mongoose.Error.BadRequestError) {
+      if (err instanceof mongoose.Error.ValidationError) {
         return next(new BadRequestError('Данные некорректны'));
       }
       return next(err);
@@ -51,7 +51,7 @@ const getCurrentUser = (req, res, next) => {
       if (err instanceof mongoose.Error.DocumentNotFoundError) {
         return next(new NotFoundError('Пользователь не найден'));
       }
-      if (err instanceof mongoose.Error.BadRequestError) {
+      if (err instanceof mongoose.Error.ValidationError) {
         return next(new BadRequestError('Данные некорректны'));
       }
       return next(err);
