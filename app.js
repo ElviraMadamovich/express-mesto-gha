@@ -1,11 +1,18 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const { errors } = require('celebrate');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
+const errorHandler = require('./middlewares/errorHandler');
 const routes = require('./routes/index');
-const handleNotFoundError = require('./middlewares/handleNotFoundError');
 const auth = require('./middlewares/auth');
-const { validateCreateUser, validateLogin } = require('./middlewares/dataValidation');
-const { login, createUser } = require('./controllers/users');
+
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes)
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+});
 
 const app = express();
 
@@ -15,23 +22,13 @@ mongoose.connect('mongodb://127.0.0.1:27017/mestodb');
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-app.post('/signin', validateLogin, login);
-app.post('/signup', validateCreateUser, createUser);
+app.use(helmet());
+app.use(limiter);
 
 app.use(auth, routes);
 
-app.use('/*', auth, handleNotFoundError);
-
 app.use(errors());
 
-app.use((err, req, res, next) => {
-  const { statusCode = 500, message } = err;
-
-  res.status(statusCode).send({
-    message: statusCode === 500 ? 'Ошибка сервера' : message,
-  });
-  next();
-});
+app.use(errorHandler);
 
 app.listen(PORT);

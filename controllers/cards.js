@@ -3,6 +3,7 @@ const cardSample = require('../models/card');
 const ForbiddenError = require('../utils/errors/ForbiddenError');
 const BadRequestError = require('../utils/errors/BadRequestError');
 const NotFoundError = require('../utils/errors/NotFoundError');
+const { HTTP_STATUS_CREATED } = require('../utils/constants');
 
 const getCards = (req, res, next) => {
   cardSample
@@ -20,7 +21,7 @@ const createCard = (req, res, next) => {
   cardSample
     .create({ name, link, owner })
     .then((card) => {
-      res.send(card);
+      res.status(HTTP_STATUS_CREATED).send(card);
     })
     .catch((err) => {
       if (err instanceof mongoose.Error.ValidationError) {
