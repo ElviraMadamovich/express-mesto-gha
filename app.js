@@ -4,7 +4,6 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const errorHandler = require('./middlewares/errorHandler');
 const routes = require('./routes/index');
-const auth = require('./middlewares/auth');
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -24,7 +23,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(helmet());
 app.use(limiter);
 
-app.use(auth, routes);
+app.use(routes);
 
 app.use(errorHandler);
 

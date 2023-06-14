@@ -3,6 +3,7 @@ const { errors } = require('celebrate');
 
 const users = require('./users');
 const cards = require('./cards');
+const auth = require('../middlewares/auth');
 const {
   login,
   createUser,
@@ -13,11 +14,11 @@ const {
 } = require('../middlewares/dataValidation');
 const NotFoundError = require('../utils/errors/NotFoundError');
 
-routes.post('/users/signin', validateLogin, login);
-routes.post('/users/signup', validateCreateUser, createUser);
+routes.post('/signin', validateLogin, login);
+routes.post('/signup', validateCreateUser, createUser);
 
-routes.use('/users', users);
-routes.use('/cards', cards);
+routes.use('/users', auth, users);
+routes.use('/cards', auth, cards);
 
 routes.use('*', (req, res, next) => {
   const err = new NotFoundError('Страница не найдена');
