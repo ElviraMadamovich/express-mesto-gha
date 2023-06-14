@@ -1,4 +1,5 @@
 const routes = require('express').Router();
+const { errors } = require('celebrate');
 
 const users = require('./users');
 const cards = require('./cards');
@@ -19,7 +20,10 @@ routes.use('/users', users);
 routes.use('/cards', cards);
 
 routes.use('*', (req, res, next) => {
-  next(new NotFoundError('Страница не найдена'));
+  const err = new NotFoundError('Страница не найдена');
+  next(err);
 });
+
+routes.use(errors());
 
 module.exports = routes;

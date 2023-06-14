@@ -1,6 +1,5 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const { errors } = require('celebrate');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const errorHandler = require('./middlewares/errorHandler');
@@ -25,11 +24,9 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use(auth, routes);
 
+app.use(errorHandler);
+
 app.use(helmet());
 app.use(limiter);
-
-app.use(errors());
-
-app.use(errorHandler);
 
 app.listen(PORT);
