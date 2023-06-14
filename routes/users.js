@@ -5,13 +5,20 @@ const {
   getCurrentUser,
   changeUser,
   changeAvatar,
+  login,
+  createUser,
 } = require('../controllers/users');
 
 const {
   validateGetUserById,
   validateChangeUser,
   validateChangeAvatar,
+  validateCreateUser,
+  validateLogin,
 } = require('../middlewares/dataValidation');
+
+router.post('/signin', validateLogin, login);
+router.post('/signup', validateCreateUser, createUser);
 
 router.get('/', getUsers);
 router.get('/me', getCurrentUser);
