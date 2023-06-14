@@ -3,13 +3,12 @@ const routes = require('express').Router();
 const users = require('./users');
 const cards = require('./cards');
 
-const NotFoundError = require('../utils/errors/NotFoundError');
+const { auth } = require('../middlewares/auth');
+const { handleNotFoundError } = require('../middlewares/handleNotFoundError');
 
 routes.use('/users', users);
 routes.use('/cards', cards);
 
-routes.use('*', (req, res, next) => {
-  next(new NotFoundError('Страница не найдена'));
-});
+routes.use('*', auth, handleNotFoundError);
 
 module.exports = routes;
