@@ -13,8 +13,8 @@ const {
 } = require('../middlewares/dataValidation');
 const NotFoundError = require('../utils/errors/NotFoundError');
 
-routes.post('/signin', validateLogin, login);
-routes.post('/signup', validateCreateUser, createUser);
+routes.post('/users/signin', validateLogin, login);
+routes.post('/users/signup', validateCreateUser, createUser);
 
 routes.use('/users', users);
 routes.use('/cards', cards);

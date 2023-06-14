@@ -21,12 +21,11 @@ mongoose.connect('mongodb://127.0.0.1:27017/mestodb');
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(helmet());
+app.use(limiter);
 
 app.use(auth, routes);
 
 app.use(errorHandler);
-
-app.use(helmet());
-app.use(limiter);
 
 app.listen(PORT);
